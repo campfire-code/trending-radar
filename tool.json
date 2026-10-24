@@ -2,12 +2,13 @@
   "id": "c19",
   "slug": "trending-radar",
   "name": "全网热点雷达",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "repo": "campfire-code/trending-radar",
   "license": "MIT",
   "ui": {
-    "layout": "f",
-    "palette": "violet"
+    "layout": "d",
+    "palette": "violet",
+    "accent": "#741BA7"
   },
   "upstream": {
     "repo": "newsnext/newsnow",

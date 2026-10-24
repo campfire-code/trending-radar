@@ -196,23 +196,27 @@ export function Main({ preview }: { preview?: boolean }) {
         <button className="k-btn" onClick={() => doExport('md')}><FileText size={15} />导出 Markdown</button>
       </div>
 
-      <div className="tr-sources" role="group" aria-label="来源">
-        {SOURCES.map((s) => {
-          const on = prefs.enabled.includes(s.id);
-          const r = results[s.id];
-          return (
-            <button key={s.id} className={`k-chip${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggleSource(s.id)} title={on ? '点击隐藏这个来源' : '点击显示这个来源'}>
-              {s.name}{on && r && !r.ok && <span className="tr-dot" aria-label="抓取失败" />}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="tr-status k-muted" role="status">
-        {lastAt ? <>更新于 {fmtTime(lastAt).slice(11)} · {prefs.enabled.length} 个来源，成功 {okCount} 个</> : '正在加载…'}
-        {prefs.interval > 0 && <> · 每 {prefs.interval} 分钟自动刷新</>}
-        {keywords.length > 0 && <> · 命中 <b className="tr-strong">{hits.length}</b> 条{fresh.length > 0 && <>，<b className="tr-strong">新增 {fresh.length}</b></>}</>}
-      </div>
+      <section className="tr-hero" aria-label="概览">
+        <div className="tr-big">
+          <span className="tr-big-n k-num">{keywords.length ? hits.length : '—'}</span>
+          <span className="tr-big-l">条命中{fresh.length > 0 && <b className="tr-new">新增 {fresh.length}</b>}</span>
+        </div>
+        <div className="tr-kwcount" role="list" aria-label="各关键词命中数">
+          {keywords.length === 0 ? <p className="k-muted">在上方输入订阅关键词，命中的热点会汇总在这里</p> : keywords.map((k) => {
+            const n = hits.filter((h) => h.keywords.includes(k)).length;
+            return (
+              <div key={k} role="listitem" className="tr-kwrow">
+                <b className="tr-kwname">{k}</b>
+                <span className="tr-kwbar"><i style={{ width: `${hits.length ? Math.max(4, (n / hits.length) * 100) : 0}%` }} /></span>
+                <span className="k-num tr-kwn">{n}</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="tr-meta k-muted" role="status">
+          {lastAt ? <>更新于 {fmtTime(lastAt).slice(11)}<br />{prefs.enabled.length} 个来源，成功 {okCount} 个{prefs.interval > 0 && <><br />每 {prefs.interval} 分钟自动刷新</>}</> : '正在加载…'}
+        </div>
+      </section>
 
       {msg && (
         <div className={`k-notice ${msg.kind}`} role="alert">
@@ -223,21 +227,41 @@ export function Main({ preview }: { preview?: boolean }) {
         </div>
       )}
 
-      {keywords.length > 0 && hits.length > 0 && (
+      <div className="tr-cols">
         <section className="tr-hits k-panel" aria-label="命中关键词">
-          <header className="tr-card-hd"><b>命中关键词</b><span className="k-muted">{keywords.join('、')}</span></header>
-          <ul className="tr-list">
-            {hits.slice(0, 30).map((h) => (
-              <li key={`${h.source}|${h.item.id}`} className="tr-item hit">
-                <span className="tr-src">{sourceById(h.source)?.name}</span>
-                <button className="tr-title" title={h.item.title} onClick={() => openLink(h.item.url)}><Title text={h.item.title} keywords={keywords} /></button>
-                {freshIds.has(`${h.source}|${h.item.id}`) && <span className="k-st ok">新</span>}
-                {h.item.heat && <span className="tr-heat k-num">{h.item.heat}</span>}
-              </li>
-            ))}
-          </ul>
+          <header className="tr-card-hd"><b>命中汇总</b><span className="k-muted k-ellipsis">{keywords.length ? keywords.join('、') : '还没有订阅关键词'}</span></header>
+          {hits.length > 0 ? (
+            <ul className="tr-list">
+              {hits.slice(0, 30).map((h) => (
+                <li key={`${h.source}|${h.item.id}`} className="tr-item hit">
+                  <span className="tr-src">{sourceById(h.source)?.name}</span>
+                  <button className="tr-title" title={h.item.title} onClick={() => openLink(h.item.url)}><Title text={h.item.title} keywords={keywords} /></button>
+                  {freshIds.has(`${h.source}|${h.item.id}`) && <span className="k-st ok">新</span>}
+                  {h.item.heat && <span className="tr-heat k-num">{h.item.heat}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : <p className="k-muted tr-none">{keywords.length ? '当前没有命中关键词的热点' : '输入关键词后，这里按热度汇总各平台的命中热点'}</p>}
         </section>
-      )}
+        <nav className="tr-rail k-panel" aria-label="来源">
+          <header className="tr-card-hd"><b>来源</b><span className="k-muted">点击显示或隐藏</span></header>
+          {SOURCES.map((s) => {
+            const on = prefs.enabled.includes(s.id);
+            const r = results[s.id];
+            const n = r ? r.items.filter((it) => matchKeywords(it.title, keywords).length > 0).length : 0;
+            return (
+              <button key={s.id} className={`tr-src-btn${on ? ' on' : ''}`} aria-pressed={on} onClick={() => toggleSource(s.id)} title={on ? '点击隐藏这个来源' : '点击显示这个来源'}>
+                <span className="tr-sw" aria-hidden />
+                <span className="k-ellipsis">{s.name}</span>
+                <span className="tr-kind">{s.kind}</span>
+                <span className="b-sp" />
+                {on && r && !r.ok && <span className="tr-dot" aria-label="抓取失败" />}
+                {on && n > 0 && <span className="tr-hitn k-num">{n}</span>}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
       <div className="tr-grid">
         {prefs.enabled.map((id) => (

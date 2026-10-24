@@ -350,6 +350,7 @@ export const SOURCES: SourceDef[] = [
   { id: 'thepaper', name: '澎湃热榜', kind: '综合', home: 'https://www.thepaper.cn/', fetch: async (get) => parseThepaper((await get('https://cache.thepaper.cn/contentapi/wwwIndex/rightSidebar')).text) },
   { id: 'tieba', name: '贴吧热议', kind: '综合', home: 'https://tieba.baidu.com/hottopic/browse/topicList', fetch: async (get) => parseTieba((await get('https://tieba.baidu.com/hottopic/browse/topicList')).text) },
   { id: '36kr', name: '36 氪快讯', kind: '科技', home: 'https://www.36kr.com/newsflashes', fetch: async (get, now) => parse36kr((await get('https://www.36kr.com/newsflashes')).text, now) },
+  // check-zh: 忽略（站点官方名称「IT 之家」）
   { id: 'ithome', name: 'IT 之家', kind: '科技', home: 'https://www.ithome.com/', fetch: async (get, now) => parseIthome((await get('https://www.ithome.com/list/')).text, now) },
   { id: 'sspai', name: '少数派', kind: '科技', home: 'https://sspai.com/', fetch: async (get, now) => parseSspai((await get(`https://sspai.com/api/v1/article/tag/page/get?limit=30&offset=0&created_at=${now}&tag=%E7%83%AD%E9%97%A8%E6%96%87%E7%AB%A0&released=false`)).text) },
   { id: 'juejin', name: '稀土掘金', kind: '科技', home: 'https://juejin.cn/hot/articles', fetch: async (get) => parseJuejin((await get('https://api.juejin.cn/content_api/v1/content/article_rank?category_id=1&type=hot&spider=0')).text) },
